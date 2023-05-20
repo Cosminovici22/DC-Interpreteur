@@ -1,6 +1,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
+
+typedef struct {
+    char type[5];
+    char name[20];
+} TVariables;
 
 void trimLeft(char *instr) {
     int i = 0;
@@ -16,6 +22,8 @@ int main(int argc, char *argv[]) {
     FILE *out = fopen(argv[1], "wt");
 
     char matchVar[20], structVar[20] = "\0";
+    TVariables *variables = (TVariables *)malloc(200*sizeof(TVariables));
+    int varCount = 0;
 
     char instr[80];
     while (fgets(instr, 80, in)) {
@@ -38,7 +46,7 @@ int main(int argc, char *argv[]) {
             strcpy(matchVar, instr + strlen(p) + 1);
         } else if (strcmp(p, "case") == 0) {
             p = strtok(NULL, " :");
-            if(strchr(p, ',')) {
+            if (strchr(p, ',')) {
                 char str[20];
                 for (int i = 0; p[i] != ','; i++) {
                     str[i] = p[i];
@@ -55,14 +63,36 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(p, "end") == 0) {
             fprintf(out, "}");
             if(structVar[0] != '\0') {
-               fprintf(out, " %s;\n", structVar);
+                fprintf(out, " %s;\n", structVar);
                 structVar[0] = '\0';
             }
             fprintf(out, "\n");
-        } else if(strcmp(p, "struct") == 0) {
+        } else if (strcmp(p, "struct") == 0) {
             p = strtok(NULL, " ");
             fprintf(out, "typedef struct %s {\n", p);
             strcpy(structVar, p);
+        } else if (strchr(instr, '=')) {
+            char *q = strtok(instr, " =");
+            q = strtok(NULL, " =");
+            bool ok = 0;
+            for (int i = 0; i < varCount; i++) {
+                if (strcmp(p, variables->name) == 0) {
+                    ok = 1;
+                }
+            }
+            if (ok == 0) {
+                strcpy(variables[varCount].name, p);
+                if (strchr(q, '.')) {
+                    strcpy(variables[varCount].type, "float");
+                } else if (q[0] > '0' && q[0] < '9') {
+                    strcpy(variables[varCount].type, "int");
+                } else if (q[0] == 39) {
+                    strcpy(variables[varCount].type, "char");
+                }
+                fprintf(out, "%s ", variables[varCount].type);
+            }
+            fprintf(out, "%s=%s;\n", p, q);
+            varCount++;
         } else {
             fprintf(out, "%s;\n", instr);
         }
