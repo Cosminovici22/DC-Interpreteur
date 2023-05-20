@@ -24,6 +24,7 @@ int main(int argc, char *argv[]) {
     char matchVar[20], structVar[20] = "\0";
     TVariables *variables = (TVariables *)malloc(200*sizeof(TVariables));
     int varCount = 0;
+    int paramCount = 0;
 
     char instr[80];
     while (fgets(instr, 80, in)) {
@@ -93,7 +94,20 @@ int main(int argc, char *argv[]) {
             }
             fprintf(out, "%s=%s;\n", p, q);
             varCount++;
-        } else {
+        }   /*if (strcmp(p,"function") == 0) {
+                paramCount = 0;
+                p = strtok(NULL, " (");
+                fprintf(out, "void *%s(",p);
+                    if (paramCount == 0)
+                        p = strtok(NULL," )");
+                    paramCount++;
+                    p = strtok(NULL, ", ");
+                    if (paramCount == 1)
+                        fprintf(out,"void *%s", p);
+                    else {
+                        fprintf(out,", void *%s", p);
+                    }
+        }*/ else {
             fprintf(out, "%s;\n", instr);
         }
     }
