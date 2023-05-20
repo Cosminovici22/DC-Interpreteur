@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
     strcat(argv[1], ".c");
     FILE *out = fopen(argv[1], "wt");
 
-    char matchVar[20];
+    char matchVar[20], structVar[20] = "\0";
 
     char instr[80];
     while (fgets(instr, 80, in)) {
@@ -53,7 +53,16 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(p, "while") == 0) {
             fprintf(out, "while(%s) {\n", instr + strlen(p) + 1);
         } else if (strcmp(p, "end") == 0) {
-            fprintf(out, "}\n");
+            fprintf(out, "}");
+            if(structVar[0] != '\0') {
+               fprintf(out, " %s;\n", structVar);
+                structVar[0] = '\0';
+            }
+            fprintf(out, "\n");
+        } else if(strcmp(p, "struct") == 0) {
+            p = strtok(NULL, " ");
+            fprintf(out, "typedef struct %s {\n", p);
+            strcpy(structVar, p);
         } else {
             fprintf(out, "%s;\n", instr);
         }
