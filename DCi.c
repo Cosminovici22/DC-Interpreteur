@@ -17,9 +17,14 @@ void trimLeft(char *instr) {
 }
 
 void parseOperation(char *operation, FILE *out) {
+    int ok = 1;
     for (int i = 0; operation[i]; i++) {
-        if (operation[i + 1] > 'a' && operation[i + 1] < 'z' || operation[i + 1] > 'A' && operation[i + 1] < 'Z') {
+        if (operation[i] >= 'a' && operation[i] <= 'z' || operation[i] >= 'A' && operation[i] <= 'Z' && ok == 1) {
             fprintf(out, "*");
+            ok = 0;
+        }
+        if (strchr(" +-*/%", operation[i])) {
+            ok = 1;
         }
         fprintf(out, "%c", operation[i]);
     }
@@ -82,12 +87,14 @@ int main(int argc, char *argv[]) {
             fprintf(out, "typedef struct %s {\n", p);
             strcpy(structVar, p);
         } else if (strchr(instr, '=')) {
-            char *q = strtok(instr, " =");
-            q = strtok(NULL, " =");
+            strcpy(aux, instr);
+            char *q = strtok(aux, " =");
+            q = strtok(NULL, " =(");
             bool ok = 0;
             for (int i = 0; i < varCount; i++) {
-                if (strcmp(p, variables->name) == 0) {
+                if (strcmp(p, variables[i].name) == 0) {
                     ok = 1;
+                    break;
                 }
             }
             if (ok == 0) {
@@ -102,14 +109,32 @@ int main(int argc, char *argv[]) {
                 fprintf(out, "%s *%s = ", variables[varCount].type, p);
                 fprintf(out, "malloc(sizeof(%s));\n", variables[varCount].type);
             }
-            fprintf(out, "*%s =", p);
-            printf("%s", strstr(instr, q));
-            //parseOperation(strstr(instr, q), out);
+            fprintf(out, "*%s = ", p);
+            char *tmp = strstr(instr, q);
+            //printf("%s ", tmp);
+            ok = 0;
+            for (int i = 0; i < varCount; i++) {
+                if (strstr(tmp, variables[i].name) != 0 && strcmp(variables[i].type, "func") != 0) {
+                    fprintf(out, "%s;\n", tmp);
+                    ok = 1;
+                    break;
+                }
+            }
+            if (ok == 0) {
+                ///printf("%s ", variables[i].type);
+                //fprintf(out, "%s;\n", tmp);
+                parseOperation(tmp, out);
+                fprintf(out, ";\n");
+            }
+            //fprintf(out, ";\n");
             varCount++;
         } else if (strcmp(p, "function") == 0) {
             //paramCount = 0;
             fprintf(out, "void *");
             p = strtok(NULL, "()");
+            strcpy(variables[varCount].name, p);
+            strcpy(variables[varCount].type, "func");
+            varCount++;
             fprintf(out, "%s (", p);
             p = strtok(NULL, "()");
             char *q = strtok(p, " ,");
@@ -135,6 +160,10 @@ int main(int argc, char *argv[]) {
         } else {
             fprintf(out, "%s;\n", instr);
         }
+    }
+
+    for (int i = 0; i < varCount; i++) {
+        printf("\n%s %s", variables[i].name, variables[i].type);
     }
 
     fclose(in);
