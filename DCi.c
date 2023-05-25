@@ -23,6 +23,8 @@ int main(int argc, char *argv[]) {
     FILE *out = fopen("/tmp/DCic.c", "wt");
     FILE *vout = fopen("/tmp/DCih.h", "wt");
 
+
+    ///baauuuu
     char matchVar[20], structVar[20] = "\0";
     TVariables *variables = (TVariables *)malloc(200*sizeof(TVariables));
     int varCount = 0;
