@@ -19,12 +19,9 @@ void trimLeft(char *instr) {
 
 int main(int argc, char *argv[]) {
     FILE *in = fopen(argv[1], "rt");
-    strcat(argv[1], ".c");
     FILE *out = fopen("/tmp/DCic.c", "wt");
     FILE *vout = fopen("/tmp/DCih.h", "wt");
 
-
-    ///baauuuu
     char matchVar[20], structVar[20] = "\0";
     TVariables *variables = (TVariables *)malloc(200*sizeof(TVariables));
     int varCount = 0;
@@ -47,7 +44,7 @@ int main(int argc, char *argv[]) {
         strcpy(aux, instr);
 
         char *p = strtok(aux, " ");
-        if (strcmp(p, "if") == 0) {
+        if (strcmp(p, "if") == 0 ) {
             fprintf(out, "if(%s) {\n", instr + strlen(p) + 1);
         } else if (strcmp(p, "for") == 0) {
             fprintf(out, "for(%s) {\n", instr + strlen(p) + 1);
@@ -83,6 +80,8 @@ int main(int argc, char *argv[]) {
         } else if (strcmp(p, "function") == 0) {
             p = strtok(NULL, " ");
             fprintf(out, "void %s() {\n", p);
+        } else if (strcmp(p, "call") == 0) {
+            fprintf(out, "%s();\n", instr + strlen(p) + 1);
         } else if (strchr(instr, '=')) {
             FILE *auxFile = vout;
             strcpy(aux, instr);
@@ -110,33 +109,32 @@ int main(int argc, char *argv[]) {
                 } else if (q[0] == 39) {
                     strcpy(variables[varCount].type, "char");
                     fprintf(auxFile, "%s ", variables[varCount].type);
-                } else if (strchr(q + 1, '{') && !arr) {
-                    printf("bau");
-                    strcpy(variables[varCount].type, "int");
-                    char *r = strtok(q, "{ }");
-                    fprintf(auxFile, "%s %s[%s][%s];\n", variables[varCount].type, p, r, strtok(NULL, "{ }"));
-                    arr = 1;
-                } else if (strchr(strchr(q + 1, '\"') + 1, '\"') && !arr) {
-                    strcpy(variables[varCount].type, "char");
-                    char *r = strtok(q, " \"");
-                    fprintf(auxFile, "%s %s[%s][%s];\n", variables[varCount].type, p, r, strtok(NULL, " \""));
-                    arr = 1;
-                } else if (strchr(q + 1, '<') && !arr) {
-                    strcpy(variables[varCount].type, "float");
-                    char *r = strtok(q, "< >");
-                    fprintf(auxFile, "%s %s[%s][%s];\n", variables[varCount].type, p, r, strtok(NULL, "< >"));
-                    arr = 1;
                 } else if (q[0] == '{' && !arr) {
                     strcpy(variables[varCount].type, "int");
-                    fprintf(auxFile, "%s %s[%s];\n", variables[varCount].type, p, strtok(q, "{ }"));
-                    arr = 1;
-                } else if (q[0] == '"' && !arr) {
-                    strcpy(variables[varCount].type, "char");
-                    fprintf(auxFile, "%s %s[%s];\n", variables[varCount].type, p, strtok(q, " \""));
+                    if (strchr(q + 1, '{') != NULL) {
+                        char *r = strtok(q, "{ }");
+                        fprintf(auxFile, "%s %s[%s][%s];\n", variables[varCount].type, p, r, strtok(NULL, "{ }"));
+                    } else {
+                        fprintf(auxFile, "%s %s[%s];\n", variables[varCount].type, p, strtok(q, "{ }"));
+                    }
                     arr = 1;
                 } else if (q[0] == '<' && !arr) {
                     strcpy(variables[varCount].type, "float");
-                    fprintf(auxFile, "%s %s[%s];\n", variables[varCount].type, p, strtok(q, "< >"));
+                    if (strchr(q + 1, '<') != NULL) {
+                        char *r = strtok(q, "< >");
+                        fprintf(auxFile, "%s %s[%s][%s];\n", variables[varCount].type, p, r, strtok(NULL, "< >"));
+                    } else {
+                        fprintf(auxFile, "%s %s[%s];\n", variables[varCount].type, p, strtok(q, "< >"));
+                    }
+                    arr = 1;
+                } else if (q[0] == '"' && !arr) {
+                    strcpy(variables[varCount].type, "char");
+                    if (strchr(strchr(q + 1, '"') + 1, '"') != NULL) {
+                        char *r = strtok(q, "\"");
+                        fprintf(auxFile, "%s %s[%s][%s];\n", variables[varCount].type, p, r, strtok(NULL, "\""));
+                    } else {
+                        fprintf(auxFile, "%s %s[%s];\n", variables[varCount].type, p, strtok(q, "\""));
+                    }
                     arr = 1;
                 }
                 if(!arr) {
