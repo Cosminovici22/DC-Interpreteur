@@ -85,7 +85,6 @@ int main(int argc, char *argv[]) {
             char *q = strtok(aux, " =");
             q = strtok(NULL, " =");
             bool ok = 0, arr = 0;
-            p = strtok(p, "[");
             
             for (int i = 0; i < varCount; i++) {
                 if (strcmp(p, variables[i].name) == 0) {
@@ -94,6 +93,11 @@ int main(int argc, char *argv[]) {
                     break;
                 }
             }
+
+            if (strchr(p, '[') != NULL) {
+                ok = 1;
+            }
+
             if (ok == 0) {
                 char *s;
                 strcpy(variables[varCount].name, p);

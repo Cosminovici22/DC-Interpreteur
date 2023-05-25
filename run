@@ -1,0 +1,13 @@
+#!/bin/bash
+
+./DCi $1
+cd /tmp
+gcc -O2 -o bimbu DCic.c DCih.h &> /dev/null
+if [ $? != 0 ]
+then
+echo "error 101"
+exit
+fi
+./bimbu
+rm DCic.c DCih.h
+rm bimbu

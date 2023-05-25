@@ -1,0 +1,30 @@
+function bubbleSort
+    sorted = 0
+    aux = 0
+    while sorted == 0
+        sorted = 1
+        for i = 0; i < n - 1; i++
+            if v[i] > v[i + 1]
+                aux = v[i]
+                v[i] = v[i + 1]
+                v[i + 1] = aux
+                sorted = 0
+            end
+        end
+    end
+end
+
+function main
+    n = 5
+    i = 0
+    v = {100}
+    for i = 0; i < n; i++
+        scanf("%d", &v[i])
+    end
+
+    call bubbleSort
+
+    for i = 0; i < n; i++
+        printf("%d ", v[i])
+    end
+end
