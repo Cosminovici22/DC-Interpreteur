@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#define prod(p) do { fprintf(out, "%s(%s) {\n", p, instr + strlen(p) + 1); } while(0)
 
 typedef struct {
     char type[10];
@@ -22,10 +23,9 @@ int main(int argc, char *argv[]) {
     FILE *out = fopen("/tmp/DCic.c", "wt");
     FILE *vout = fopen("/tmp/DCih.h", "wt");
 
-    char matchVar[20], structVar[20] = "\0";
+    char matchVar[20] = "\0", structVar[20] = "\0";
     TVariables *variables = (TVariables *)malloc(200*sizeof(TVariables));
     int varCount = 0;
-    int paramCount = 0;
     fprintf(out, "#include <stdio.h>\n");
     fprintf(out, "#include <stdlib.h>\n");
     fprintf(out, "#include <math.h>\n");
@@ -44,10 +44,10 @@ int main(int argc, char *argv[]) {
         strcpy(aux, instr);
 
         char *p = strtok(aux, " ");
-        if (strcmp(p, "if") == 0 ) {
-            fprintf(out, "if(%s) {\n", instr + strlen(p) + 1);
-        } else if (strcmp(p, "for") == 0) {
-            fprintf(out, "for(%s) {\n", instr + strlen(p) + 1);
+        if (strcmp(p, "if") == 0 || strcmp(p, "for") == 0 || strcmp(p, "while") == 0) {
+            prod(p);
+        } else if (strcmp(p, "else") == 0) {
+            fprintf(out, "} else {\n");
         } else if (strcmp(p, "match") == 0) {
             strcpy(matchVar, instr + strlen(p) + 1);
         } else if (strcmp(p, "case") == 0) {
@@ -64,15 +64,12 @@ int main(int argc, char *argv[]) {
                 fprintf(out, "if (%s == ", matchVar);
                 fprintf(out, "%s) {\n", p);
             }
-        } else if (strcmp(p, "while") == 0) {
-            fprintf(out, "while(%s) {\n", instr + strlen(p) + 1);
         } else if (strcmp(p, "end") == 0) {
             fprintf(out, "}\n");
             if(structVar[0] != '\0') {
                 fprintf(out, " %s;\n", structVar);
                 structVar[0] = '\0';
             }
-            fprintf(out, "\n");
         } else if (strcmp(p, "struct") == 0) {
             p = strtok(NULL, " ");
             fprintf(out, "typedef struct %s {\n", p);
@@ -100,14 +97,14 @@ int main(int argc, char *argv[]) {
             if (ok == 0) {
                 char *s;
                 strcpy(variables[varCount].name, p);
-                if (strchr(q, '.')) {
+                if (q[0] == 39) {
+                    strcpy(variables[varCount].type, "char");
+                    fprintf(auxFile, "%s ", variables[varCount].type);
+                } else if (strchr(q, '.')) {
                     strcpy(variables[varCount].type, "float");
                     fprintf(auxFile, "%s ", variables[varCount].type);
                 } else if (q[0] >= '0' && q[0] <= '9') {
                     strcpy(variables[varCount].type, "int");
-                    fprintf(auxFile, "%s ", variables[varCount].type);
-                } else if (q[0] == 39) {
-                    strcpy(variables[varCount].type, "char");
                     fprintf(auxFile, "%s ", variables[varCount].type);
                 } else if (q[0] == '{' && !arr) {
                     strcpy(variables[varCount].type, "int");
