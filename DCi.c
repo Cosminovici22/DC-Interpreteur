@@ -13,20 +13,24 @@ void trimLeft(char *instr) {
     while (instr[i] == ' ' || instr[i] == '\t') {
         i++;
     }
-    strcpy(instr, instr + i);
+    int len = strlen(instr);
+    memmove(instr, instr + i, len); 
 }
 
 int main(int argc, char *argv[]) {
     FILE *in = fopen(argv[1], "rt");
     strcat(argv[1], ".c");
-    FILE *out = fopen(argv[1], "wt");
-    //fpos_t posGlob;
-    //fgetpos(out, &posGlob);
+    FILE *out = fopen("/tmp/DCic.c", "wt");
+    FILE *vout = fopen("/tmp/DCih.h", "wt");
 
     char matchVar[20], structVar[20] = "\0";
     TVariables *variables = (TVariables *)malloc(200*sizeof(TVariables));
     int varCount = 0;
     int paramCount = 0;
+    fprintf(out, "#include <stdio.h>\n");
+    fprintf(out, "#include <stdlib.h>\n");
+    fprintf(out, "#include <math.h>\n");
+    fprintf(out, "#include \"DCih.h\"\n\n");
 
     char instr[80];
     while (fgets(instr, 80, in)) {
@@ -78,6 +82,7 @@ int main(int argc, char *argv[]) {
             p = strtok(NULL, " ");
             fprintf(out, "void %s() {\n", p);
         } else if (strchr(instr, '=')) {
+            FILE *auxFile = vout;
             strcpy(aux, instr);
             char *q = strtok(aux, " =");
             q = strtok(NULL, " =");
@@ -87,62 +92,55 @@ int main(int argc, char *argv[]) {
             for (int i = 0; i < varCount; i++) {
                 if (strcmp(p, variables[i].name) == 0) {
                     ok = 1;
+                    auxFile = out;
                     break;
                 }
             }
             if (ok == 0) {
-                //fpos_t posCur;
-                //fgetpos(out, &posCur);
-                //fsetpos(out, &posGlob);
-                //q = strstr(q, "><");
-                printf("%s\n", q);
                 char *s;
                 strcpy(variables[varCount].name, p);
                 if (strchr(q, '.')) {
                     strcpy(variables[varCount].type, "float");
-                    fprintf(out, "%s ", variables[varCount].type);
-                } else if (strstr(q, "><") && !arr) {
-                    strcpy(variables[varCount].type, "float");
-                    char *r = strtok(q, "< >");
-                    fprintf(out, "%s %s[%s][%s];\n", variables[varCount].type, p, r, strtok(NULL, "< >"));
-                    arr = 1;
+                    fprintf(auxFile, "%s ", variables[varCount].type);
                 } else if (q[0] >= '0' && q[0] <= '9') {
                     strcpy(variables[varCount].type, "int");
-                    fprintf(out, "%s ", variables[varCount].type);
+                    fprintf(auxFile, "%s ", variables[varCount].type);
                 } else if (q[0] == 39) {
                     strcpy(variables[varCount].type, "char");
-                    fprintf(out, "%s ", variables[varCount].type);
-                } else if (strstr(q, "}{") && !arr) {
+                    fprintf(auxFile, "%s ", variables[varCount].type);
+                } else if (strchr(q + 1, '{') && !arr) {
                     printf("bau");
                     strcpy(variables[varCount].type, "int");
                     char *r = strtok(q, "{ }");
-                    fprintf(out, "%s %s[%s][%s];\n", variables[varCount].type, p, r, strtok(NULL, "{ }"));
+                    fprintf(auxFile, "%s %s[%s][%s];\n", variables[varCount].type, p, r, strtok(NULL, "{ }"));
                     arr = 1;
-                } else if (strstr(q, """") && !arr) {
+                } else if (strchr(strchr(q + 1, '\"') + 1, '\"') && !arr) {
                     strcpy(variables[varCount].type, "char");
                     char *r = strtok(q, " \"");
-                    fprintf(out, "%s %s[%s][%s];\n", variables[varCount].type, p, r, strtok(NULL, " \""));
+                    fprintf(auxFile, "%s %s[%s][%s];\n", variables[varCount].type, p, r, strtok(NULL, " \""));
+                    arr = 1;
+                } else if (strchr(q + 1, '<') && !arr) {
+                    strcpy(variables[varCount].type, "float");
+                    char *r = strtok(q, "< >");
+                    fprintf(auxFile, "%s %s[%s][%s];\n", variables[varCount].type, p, r, strtok(NULL, "< >"));
                     arr = 1;
                 } else if (q[0] == '{' && !arr) {
                     strcpy(variables[varCount].type, "int");
-                    fprintf(out, "%s %s[%s];\n", variables[varCount].type, p, strtok(q, "{ }"));
+                    fprintf(auxFile, "%s %s[%s];\n", variables[varCount].type, p, strtok(q, "{ }"));
                     arr = 1;
                 } else if (q[0] == '"' && !arr) {
                     strcpy(variables[varCount].type, "char");
-                    fprintf(out, "%s %s[%s];\n", variables[varCount].type, p, strtok(q, " \""));
+                    fprintf(auxFile, "%s %s[%s];\n", variables[varCount].type, p, strtok(q, " \""));
                     arr = 1;
                 } else if (q[0] == '<' && !arr) {
                     strcpy(variables[varCount].type, "float");
-                    fprintf(out, "%s %s[%s];\n", variables[varCount].type, p, strtok(q, "< >"));
+                    fprintf(auxFile, "%s %s[%s];\n", variables[varCount].type, p, strtok(q, "< >"));
                     arr = 1;
                 }
                 if(!arr) {
-                    fprintf(out, "%s = %s;\n", p, strstr(instr, q));
+                    fprintf(auxFile, "%s = %s;\n", p, strstr(instr, q));
                 }
-                //fprintf(out, "\n");
                 varCount++;
-                //fgetpos(out, &posGlob);
-                //fsetpos(out, &posCur);
             } else {
                 fprintf(out, "%s;\n", instr);
             }
@@ -150,12 +148,10 @@ int main(int argc, char *argv[]) {
             fprintf(out, "%s;\n", instr);
         }
     }
-    
-    /*for (int i = 0; i < varCount; i++) {
-        printf("%s %s\n", variables[i].name, variables[i].type);
-    }*/
+    free(variables);
 
     fclose(in);
     fclose(out);
+    fclose(vout);
     return 0;
 }
