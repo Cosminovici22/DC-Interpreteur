@@ -8,7 +8,7 @@ Sarcini:
 ILIESCU Cosmin	TĂNASIE Daria-Maria
 Pointeri	Structuri
 Librarii 1/2	Librarii 1/2
-Instructiunea repetitiva “fo()”	Instructiunea repetitiva “while()”
+Instructiunea repetitiva “for()” Instructiunea repetitiva “while()”
 Functii	Tipuri de date
 Switch()	If()
 
