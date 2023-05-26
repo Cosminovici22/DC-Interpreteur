@@ -1,4 +1,4 @@
-DC Interpreteur
+DC Interpreter
 
 Descriere proiect:
 In cadrul proiectului ne propunem sa realizam un mic limbaj de programare alaturi de un interpretor pentru acesta. Userul va scrie cod intr-un fisier text care va fi pasat ca argument executabilului pentru interpretor. Interpretorul va citi din fisierul dat ca argument si va creea un alt fisier de tip .c care va fi rulat la sfarsit.
